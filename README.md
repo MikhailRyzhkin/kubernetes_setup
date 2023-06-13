@@ -5,6 +5,45 @@
 # https://git.cloud-team.ru/lections/kubernetes_setup/raw/master/presentation.pdf
 # https://www.youtube.com/watch?v=WFXlr0bVTAQ
 
+Вся подготовка по установке сервера управления srv, установки нужных пакетов и зависимостей, скачивание из репозиториев kubespay
+и подготовка для установки кластера выполняется автоматически на предыдущем шаге кодом из репозитория: 
+https://github.com/MikhailRyzhkin/Initial_infr
+
+Для полуавтоматического варианта установки, необходимо после установки сервара управления SRV:
+```
+  - зайти по ssh на эту ноду:  ssh -i C:\Users\Mikhail\.ssh\mikhail-skillfactory ubuntu@<IP_adress>
+  - запустить скрипт развёртывания кластера k8s: /opt/kubernetes_setup/cluster_install.sh
+```
+В этом варианте только два ручных действия:
+  - Развёртывание srv из заранее скачанного репозитория https://github.com/MikhailRyzhkin/Initial_infr: terraform apply
+  - Развёртывание кластера k8s с srv ноды: /opt/kubernetes_setup/cluster_install.sh
+
+Для автоматического развёртывания понадобится:
+```
+  - раскомментировать в файле /scripts/k8s-provisioning.sh самую нижнюю строку: #/opt/kubernetes_setup/cluster_install.sh репозитория https://github.com/MikhailRyzhkin/Initial_infr
+  - Запуск автоматического каскадного развёртывания из заранее скачанного репозитория https://github.com/MikhailRyzhkin/Initial_infr srv ноды и кластера k8s с неё: terraform apply
+```
+
+В примере использован первый вариант - полуавтоматический.
+Но тестировался и полностью автоматический. 
+Полуавтоматический вариант выбран для более полного контроля и дебагинга развёртывания кластера с учетом будущих возможных изменений в версиях.
+
+## Create cloud resources and install k8s cluster
+```
+$ /opt/kubernetes_setup/cluster_install.sh
+```
+
+# Destroy cluster
+## Delete cloud resources
+```
+$ /opt/kubernetes_setup/cluster_destroy.sh
+```
+
+Результаты разворачивания инфрастурктуры и кластера:
+
+
+Полезные ссылки:
+
 ## Register in Yandex Cloud
 
 https://cloud.yandex.ru
@@ -12,6 +51,7 @@ https://cloud.yandex.ru
 ## Install Terraform client 
 
 https://learn.hashicorp.com/terraform/getting-started/install
+ https://cloud.yandex.ru/docs/tutorials/infrastructure-management/terraform-quickstart
 
 ## Install Ansible
 
@@ -31,131 +71,7 @@ https://stedolan.github.io/jq/
 
 ## Clone Kubespray repo and install Kubespray requirements
 ```
-$ git clone git@git.cloud-team.ru:ansible-roles/kubespray.git kubespray -b cloudteam
-$ sudo pip3 install -r kubespray/requirements.txt
+$ git clone https://github.com/MikhailRyzhkin/kubernetes_setup
+cd /kubernetes_setup
+$ git clone https://github.com/MikhailRyzhkin/kubespray
 ```
-
-## Set Terraform variables
-```
-$ cp terraform/private.auto.tfvars.example terraform/private.auto.tfvars
-$ vim terraform/private.auto.tfvars
-```
-
-## Create cloud resources and install k8s cluster
-```
-$ bash cluster_install.sh
-```
-
-## Copy generated config
-```
-$ mkdir -p ~/.kube && cp kubespray/inventory/mycluster/artifacts/admin.conf ~/.kube/config
-```
-
-## Deploy test app
-```
-$ kubectl apply -f manifests/test-app.yml
-```
-
-## Add hosts to your local hosts file
-```
-$ sudo sh -c "cat kubespray_inventory/etc-hosts >> /etc/hosts"
-```
-
-## Check external access to test app
-```
-$ curl hello.local
-Hello from my-deployment-784598767c-7gjjs
-```
-
-# Cluster monitoring
-
-## Install Kubernetes Dashboard
-```
-$ helm repo add kubernetes-dashboard https://kubernetes.github.io/dashboard/
-$ helm install --namespace monitoring --create-namespace -f manifests/dashboard-values.yml \
-  kubernetes-dashboard kubernetes-dashboard/kubernetes-dashboard
-$ kubectl apply -f manifests/dashboard-admin.yml
-$ kubectl -n monitoring describe secret \
-  $(kubectl -n monitoring get secret | grep admin-user | awk '{print $1}')
-$ kubectl port-forward -n monitoring $(kubectl get pods -n monitoring \
-  -l "app.kubernetes.io/name=kubernetes-dashboard" -o jsonpath="{.items[0].metadata.name}") 9090
-```
-Go to http://localhost:9090 and use token for authentication
-
-## Install Prometheus and Grafana
-```
-$ helm install --namespace monitoring --create-namespace -f manifests/prometheus-values.yml \
-  prometheus stable/prometheus
-$ helm install --namespace monitoring --create-namespace -f manifests/grafana-values.yml \
-  grafana stable/grafana
-```
-
-### Access Prometheus UI
-
-Go to http://prometheus.local
-
-### Access Grafana UI
-```
-$ kubectl get secret -n monitoring grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo
-```
-
-Go to http://grafana.local (user: admin, password: result of first command).
-Add new data source with type "Prometheus" and url "http://prometheus-server".
-Import a new dashboard to Grafana (grafana.com dashboard: https://grafana.com/dashboards/1621, Prometheus: created one).
-
-# Logging
-
-## Deploy Loghouse
-```
-$ helm repo add loghouse https://flant.github.io/loghouse/charts/
-$ helm install --namespace loghouse --create-namespace -f manifests/loghouse-values.yml \
-  loghouse loghouse/loghouse
-```
-Go to http://loghouse.local (login: admin, password: PASSWORD).
-
-Try to search logs of test app with the query:
-```
-~app = "my-app"
-```
-
-# Cluster backup/restore
-
-## Install Velero
-
-https://velero.io/docs/v1.4/basic-install/
-
-## Install and configure AWS plugin
-```
-$ velero install \
-  --provider aws \
-  --plugins velero/velero-plugin-for-aws:v1.1.0 \
-  --bucket backup-backet \
-  --backup-location-config region=ru-central1-a,s3ForcePathStyle="true",s3Url=https://storage.yandexcloud.net \
-  --snapshot-location-config region=ru-central1-a \
-  --secret-file kubespray_inventory/credentials-velero
-```
-
-## Create backup and watch its status
-```
-$ velero backup create my-first-backup
-$ velero backup get
-```
-
-## Delete test app
-```
-$ kubectl delete -f manifests/test-app.yml
-```
-
-## Restore backup and list restores
-```
-$ velero restore create --from-backup my-first-backup
-$ velero restore get
-```
-
-# Destroy cluster
-
-## Delete cloud resources
-```
-$ bash cluster_destroy.sh
-```
-

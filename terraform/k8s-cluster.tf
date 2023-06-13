@@ -67,7 +67,7 @@ resource "yandex_iam_service_account" "admin" {
 }
 
 resource "yandex_resourcemanager_folder_iam_binding" "editor" {
-  folder_id = var.yandex_cloud_id
+  folder_id = var.yandex_folder_id
   role = "editor"
   members = [
     "serviceAccount:${yandex_iam_service_account.admin.id}",
@@ -128,7 +128,7 @@ resource "yandex_compute_instance_group" "k8s-masters" {
     }
 
     metadata = {
-      ssh-keys = "ubuntu:${file("~/.ssh/id_rsa.pub")}"
+      ssh-keys = "ubuntu:${file("/root/.ssh/mikhail-skillfactory.pub")}"
     }
     
     network_settings {
@@ -202,7 +202,7 @@ resource "yandex_compute_instance_group" "k8s-workers" {
     }
 
     metadata = {
-      ssh-keys = "ubuntu:${file("~/.ssh/id_rsa.pub")}"
+      ssh-keys = "ubuntu:${file("/root/.ssh/mikhail-skillfactory.pub")}"
     }
     network_settings {
       type = "STANDARD"
@@ -341,15 +341,15 @@ resource "yandex_compute_instance_group" "k8s-workers" {
 
 # Backet for storing cluster backups
 # Создание бакета для хранения бэкапов кластера
-resource "yandex_storage_bucket" "backup-backet" {
-  bucket = "backup-backet"
-  force_destroy = true
-  access_key = yandex_iam_service_account_static_access_key.static-access-key.access_key
-  secret_key = yandex_iam_service_account_static_access_key.static-access-key.secret_key
-  depends_on = [
-    yandex_iam_service_account_static_access_key.static-access-key
-  ]
-}
+#resource "yandex_storage_bucket" "backup-backet" {
+#  bucket = "backup-backet"
+#  force_destroy = true
+#  access_key = yandex_iam_service_account_static_access_key.static-access-key.access_key
+#  secret_key = yandex_iam_service_account_static_access_key.static-access-key.secret_key
+#  depends_on = [
+#    yandex_iam_service_account_static_access_key.static-access-key
+#  ]
+#}
 
 
 # Output values

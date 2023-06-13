@@ -14,6 +14,8 @@ bash generate_etc_hosts.sh > ../kubespray_inventory/etc-hosts
 cd ../
 rm -rf kubespray/inventory/mycluster
 cp -rfp kubespray_inventory kubespray/inventory/mycluster
+echo "Инфраструктурные ВМ развёрнуты, ожидаем 85 секунд пока станут доступны по ssh перед развёртыванием k8s"
+sleep 75
 
 # Запускаем ansible плейбук kubespray развёртывания кластера k8s
 cd kubespray
@@ -27,11 +29,11 @@ sed -i -- "s/$MASTER_1_PRIVATE_IP/$MASTER_1_PUBLIC_IP/g" ../kubespray/inventory/
 
 # Создаём конфигурационный каталог для управления кластером и копируем в него конфиг-файл:
 mkdir -p ~/.kube 
-sudo mkdir -p root/.kube 
+mkdir -p /root/.kube 
 mkdir -p /opt/.kube
 cd ../
 cp kubespray/inventory/mycluster/artifacts/admin.conf ~/.kube/config
-sudo cp kubespray/inventory/mycluster/artifacts/admin.conf root/.kube/config
+cp kubespray/inventory/mycluster/artifacts/admin.conf /root/.kube/config
 cp kubespray/inventory/mycluster/artifacts/admin.conf /opt/.kube/config
 chmod 777 /opt/.kube
 chmod 777 /opt/.kube/config
@@ -40,11 +42,11 @@ chmod 777 /opt/.kube/config
 $ sudo sh -c "cat kubespray_inventory/etc-hosts >> /etc/hosts"
 
 # Проверяем доступность кластера:
-echo -n " "
-echo -n "======================= Ноды кластера ================================="
+echo -e " "
+echo -e "======================= Ноды кластера ================================="
 kubectl get nodes
-echo -n " "
-echo -n "======================= Поды кластера ================================="
+echo -e " "
+echo -e "======================= Поды кластера ================================="
 kubectl get pods -A
-echo -n " "
-echo -n "Кластер k8s успешно настроен!"
+echo -e " "
+echo -e "Кластер k8s установлен успешно!"
