@@ -15,7 +15,7 @@ cd ../
 rm -rf kubespray/inventory/mycluster
 cp -rfp kubespray_inventory kubespray/inventory/mycluster
 echo "Инфраструктурные ВМ развёрнуты, ожидаем 85 секунд пока станут доступны по ssh перед развёртыванием k8s"
-sleep 75
+sleep 85
 
 # Запускаем ansible плейбук kubespray развёртывания кластера k8s
 cd kubespray

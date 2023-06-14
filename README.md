@@ -33,7 +33,6 @@ https://github.com/MikhailRyzhkin/Initial_infr
 $ /opt/kubernetes_setup/cluster_install.sh
 ```
 
-# Destroy cluster
 ## Delete cloud resources
 ```
 $ /opt/kubernetes_setup/cluster_destroy.sh
