@@ -128,7 +128,7 @@ resource "yandex_compute_instance_group" "k8s-masters" {
     }
 
     metadata = {
-      ssh-keys = "ubuntu:${file("/root/.ssh/mikhail-skillfactory.pub")}"
+      ssh-keys = "ubuntu:${file("/home/ubuntu/.ssh/mikhail-skillfactory.pub")}"
     }
     
     network_settings {
@@ -202,7 +202,7 @@ resource "yandex_compute_instance_group" "k8s-workers" {
     }
 
     metadata = {
-      ssh-keys = "ubuntu:${file("/root/.ssh/mikhail-skillfactory.pub")}"
+      ssh-keys = "ubuntu:${file("/home/ubuntu/.ssh/mikhail-skillfactory.pub")}"
     }
     network_settings {
       type = "STANDARD"
