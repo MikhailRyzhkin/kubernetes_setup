@@ -19,7 +19,7 @@ sleep 85
 
 # Запускаем ansible плейбук kubespray развёртывания кластера k8s
 cd kubespray
-ansible-playbook -i inventory/mycluster/hosts.ini --become cluster.yml
+ansible-playbook -i inventory/mycluster/hosts.ini --become -u ubuntu --private-key /home/ubuntu/.ssh/mikhail-skillfactory cluster.yml
 
 # Подменяет локальные адреса на белый кластера из сгененированного конфига kubespray, создаём файл admin.conf для дальнейшего подключчения к нему удалённо
 cd ../terraform
