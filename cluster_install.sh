@@ -39,7 +39,7 @@ chmod 777 /opt/.kube
 chmod 777 /opt/.kube/config
 
 # Добавляем сгенерированные хосты в наш локальный hosts-файл:
-$ sudo sh -c "cat kubespray_inventory/etc-hosts >> /etc/hosts"
+sh -c "cat kubespray_inventory/etc-hosts >> /etc/hosts"
 
 # Проверяем доступность кластера:
 echo -e " "
